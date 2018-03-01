@@ -11,7 +11,7 @@ type vcrResponse struct {
 	StatusCode    int
 	ContentLength int64
 	Header        http.Header
-	Body          []byte
+	Body          string
 }
 
 func newVCRResponse(response *http.Response) *vcrResponse {
@@ -25,7 +25,7 @@ func newVCRResponse(response *http.Response) *vcrResponse {
 		StatusCode:    response.StatusCode,
 		Header:        response.Header,
 		ContentLength: response.ContentLength,
-		Body:          body,
+		Body:          string(body),
 	}
 }
 
@@ -38,6 +38,6 @@ func (vr *vcrResponse) httpResponse() *http.Response {
 		ProtoMinor:    0,
 		Header:        vr.Header,
 		ContentLength: vr.ContentLength,
-		Body:          ioutil.NopCloser(bytes.NewBuffer(vr.Body)),
+		Body:          ioutil.NopCloser(bytes.NewBuffer([]byte(vr.Body))),
 	}
 }

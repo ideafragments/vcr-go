@@ -43,10 +43,18 @@ func (c *cassette) write() {
 	json.Indent(&jsonOut, jsonData, "", "  ")
 
 	os.MkdirAll("fixtures/vcr", 0755)
-	err := ioutil.WriteFile(c.fileName(), jsonOut.Bytes(), 0644)
+	err := ioutil.WriteFile(c.fileName(), replaceEscapedChars(jsonOut.Bytes()), 0644)
 	if err != nil {
 		panic("VCR: Cannot write cassette file!")
 	}
+}
+
+func replaceEscapedChars(b []byte) []byte {
+	b = bytes.Replace(b, []byte("\\u0026"), []byte("&"), -1)
+	b = bytes.Replace(b, []byte("\\u003c"), []byte("<"), -1)
+	b = bytes.Replace(b, []byte("\\u003e"), []byte(">"), -1)
+
+	return b
 }
 
 func panicEpisodeMismatch(request *vcrRequest, field string, expected string, actual string) {
