@@ -2,7 +2,7 @@ package vcr
 
 import (
 	"bytes"
-	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -115,8 +115,22 @@ func TestVCR(t *testing.T) {
 	// this only works because the key is the only body content.
 	// otherwise the base64 alignment would be off.
 	data, _ := ioutil.ReadFile("fixtures/vcr/test_cassette.json")
-	assert.Contains(t, string(data), base64.StdEncoding.EncodeToString([]byte("dummy-key")))
-	assert.NotContains(t, string(data), base64.StdEncoding.EncodeToString([]byte("secret-key")))
+
+	cas := new(cassette)
+	assert.NoError(t, json.Unmarshal(data, cas))
+
+	foundReplacement := false
+	for _, ep := range cas.Episodes {
+		body := ep.Request.Body
+
+		if strings.Contains(body, "dummy-key") {
+			foundReplacement = true
+		}
+
+		assert.NotContains(t, body, "secret-key")
+	}
+
+	assert.True(t, foundReplacement)
 
 	Start("test_cassette", requestMod)
 	FilterData("secret-key", "dummy-key")

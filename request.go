@@ -10,7 +10,7 @@ type vcrRequest struct {
 	// Header is intentionally not included and is not used for episode matching
 	Method string
 	URL    string
-	Body   []byte
+	Body   string
 }
 
 func newVCRRequest(request *http.Request, filterMap map[string]string) *vcrRequest {
@@ -28,6 +28,6 @@ func newVCRRequest(request *http.Request, filterMap map[string]string) *vcrReque
 	return &vcrRequest{
 		Method: request.Method,
 		URL:    request.URL.String(),
-		Body:   body,
+		Body:   string(body),
 	}
 }
