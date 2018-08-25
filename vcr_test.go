@@ -15,6 +15,8 @@ import (
 )
 
 var testRequestCounter = 0
+var secretKey = "secret/-ke/y"
+var dummyKey = "dummy-key"
 
 func testBegin(t *testing.T) {
 	// delete old fixtures
@@ -76,9 +78,9 @@ func testAllRequests(t *testing.T, urlBase string) {
 	_, body = testRequest(t, urlBase+"/modme", &str)
 	assert.Equal(t, "4:POST:/modme:'moddedString'", body)
 
-	str = "secret-key"
+	str = secretKey
 	_, body = testRequest(t, urlBase, &str)
-	assert.Equal(t, "5:POST:/:'secret-key'", body)
+	assert.Equal(t, "5:POST:/:'" + secretKey + "'", body)
 
 }
 
@@ -108,7 +110,7 @@ func TestVCR(t *testing.T) {
 	defer ts.Close()
 
 	Start("test_cassette", requestMod)
-	FilterData("secret-key", "dummy-key")
+	FilterData(secretKey, dummyKey)
 	testAllRequests(t, ts.URL)
 	Stop()
 
@@ -123,17 +125,17 @@ func TestVCR(t *testing.T) {
 	for _, ep := range cas.Episodes {
 		body := ep.Request.Body
 
-		if strings.Contains(body, "dummy-key") {
+		if strings.Contains(body, dummyKey) {
 			foundReplacement = true
 		}
 
-		assert.NotContains(t, body, "secret-key")
+		assert.NotContains(t, body, secretKey)
 	}
 
 	assert.True(t, foundReplacement)
 
 	Start("test_cassette", requestMod)
-	FilterData("secret-key", "dummy-key")
+	FilterData(secretKey, dummyKey)
 	testAllRequests(t, ts.URL)
 	Stop()
 }

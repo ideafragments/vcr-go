@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 )
 
 type vcrRequest struct {
@@ -20,9 +21,7 @@ func newVCRRequest(request *http.Request, filterMap map[string]string) *vcrReque
 		request.Body.Close()
 		request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-		for original, replacement := range filterMap {
-			body = bytes.Replace(body, []byte(original), []byte(replacement), -1)
-		}
+		body = replaceBodyPattern(body, filterMap)
 	}
 
 	return &vcrRequest{
@@ -30,4 +29,15 @@ func newVCRRequest(request *http.Request, filterMap map[string]string) *vcrReque
 		URL:    request.URL.String(),
 		Body:   string(body),
 	}
+}
+
+func replaceBodyPattern(body []byte, patternFilters map[string]string) []byte {
+	newBody := make([]byte, len(body))
+	copy(newBody, body)
+	for pattern, replacement := range patternFilters {
+		r := regexp.MustCompile(pattern)
+		newBody = r.ReplaceAllLiteral(newBody, []byte(replacement))
+	}
+
+	return newBody
 }
